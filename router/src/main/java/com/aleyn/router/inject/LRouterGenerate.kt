@@ -2,23 +2,28 @@ package com.aleyn.router.inject
 
 import androidx.annotation.Keep
 
-/**
- * @author: Aleyn
- * @date: 2023/7/14 18:23
- * LRouter Plugin Generate Code
- */
+private val instance: IRouterGenerate by lazy {
+    Class.forName("com.router.RouterGenerateHolder")
+        .getDeclaredConstructor()
+        .newInstance() as IRouterGenerate
+}
+
 @Keep
 internal fun injectAutowired(target: Any?) {
+    instance.injectAutowired(target)
 }
 
 @Keep
 internal fun initModuleRouter() {
+    instance.initModuleRouter()
 }
 
 @Keep
 internal fun registerIntercept() {
+    instance.registerIntercept()
 }
 
 @Keep
 internal fun registerAllInitializer() {
+    instance.registerAllInitializer()
 }

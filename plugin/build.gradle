@@ -6,6 +6,8 @@ plugins {
 
 kotlin {
     jvmToolchain(11)
+    setSourceCompatibility(JavaVersion.VERSION_11)
+    setTargetCompatibility(JavaVersion.VERSION_11)
 }
 
 group = lrouterGroup

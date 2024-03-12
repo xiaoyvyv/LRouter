@@ -18,26 +18,27 @@ class AutowiredInstructAdapter(
 
     override fun visitCode() {
         autowiredClass?.forEach {
-            val label0 = Label()
-            val label1 = Label()
-            val label2 = Label()
+            val start = Label()
+            val end = Label()
+            val handler = Label()
 
-            visitTryCatchBlock(label0, label1, label2, "java/lang/Exception")
-            mark(label0)
+            visitTryCatchBlock(start, end, handler, "java/lang/Exception")
+            mark(start)
             nop()
-            load(0, OBJECT_TYPE)
+            load(1, OBJECT_TYPE)
             invokestatic(
                 it.className,
                 "autowiredInject",
                 "(Ljava/lang/Object;)V",
                 false
             )
-            mark(label1)
-            val label3 = Label()
-            goTo(label3)
-            mark(label2)
-            store(1, OBJECT_TYPE)
-            mark(label3)
+            mark(end)
+
+            val label = Label()
+            goTo(label)
+            mark(handler)
+            store(2, OBJECT_TYPE)
+            mark(label)
         }
         super.visitCode()
     }

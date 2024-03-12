@@ -2,6 +2,13 @@ plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
     id 'kotlin-parcelize'
+    id 'aleyn-router'
+}
+
+kotlin {
+    jvmToolchain(11)
+    setSourceCompatibility(JavaVersion.VERSION_11)
+    setTargetCompatibility(JavaVersion.VERSION_11)
 }
 
 android {
@@ -39,3 +46,7 @@ dependencies {
     implementation project(":module_first")
     implementation project(":module_two")
 }
+
+//tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile.class).configureEach {
+//    it.kotlinOptions.jvmTarget("11")
+//}

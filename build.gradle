@@ -18,13 +18,14 @@ plugins {
     alias libs.plugins.kotlin.jvm apply false
 }
 
-subprojects.forEach {
-    it.afterEvaluate {
-        def isAndroid = (it.plugins.hasPlugin('com.android.application')
-                || it.plugins.hasPlugin('com.android.library'))
-        def isModule = it.name.startsWith('module') || it.name.startsWith('app')
-        if (isAndroid && isModule) {
-            it.plugins.apply('aleyn-router')
-        }
-    }
-}
+//subprojects.forEach {
+//    it.afterEvaluate {
+//        def isAndroid = (it.plugins.hasPlugin('com.android.application')
+//                || it.plugins.hasPlugin('com.android.library'))
+//        def isModule = it.name.startsWith('module') || it.name.startsWith('app')
+//        if (isAndroid && isModule) {
+//            it.plugins.apply('aleyn-router')
+//            println("apply plugin aleyn-router: " + it.name)
+//        }
+//    }
+//}

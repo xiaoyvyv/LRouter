@@ -3,6 +3,7 @@ package com.aleyn.router.plug
 import com.aleyn.plugin.ROUTER_CORE
 import com.aleyn.plugin.ROUTER_PROCESSOR
 import com.aleyn.plugin.ROUTER_VERSION
+import com.aleyn.router.plug.task.RouterStubClassTask
 import com.aleyn.router.plug.task.GenLRouterDocTask
 import com.aleyn.router.plug.task.LRouterClassTask
 import com.android.build.api.AndroidPluginVersion
@@ -26,9 +27,7 @@ class RouterPlugin : Plugin<Project> {
     private val kspPlugin = "com.google.devtools.ksp"
 
     override fun apply(project: Project) {
-
         val isApp = project.plugins.hasPlugin(AppPlugin::class.java)
-
         val isAndroid = (isApp
                 || project.plugins.hasPlugin(LibraryPlugin::class.java)
                 || project.plugins.hasPlugin(DynamicFeaturePlugin::class.java))
@@ -41,33 +40,49 @@ class RouterPlugin : Plugin<Project> {
         project.extensions.findByType(KspExtension::class.java)?.apply {
             arg("L_ROUTER_MODULE_NAME", project.name)
         }
-
-
-        if (!isApp) return
+        println("projectName: ${project.name}")
 
         val androidComponents = project.extensions.getByType(AndroidComponentsExtension::class.java)
         val gradleVersion = project.gradle.gradleVersion
-
-        println("-------- LRouter Current environment --------")
-        println("Gradle Version $gradleVersion")
-        println("${androidComponents.pluginVersion}")
-        println("JDK Version ${System.getProperty("java.version")}")
-        println("LRouter Version $ROUTER_VERSION")
-        println("LRouter Auto $isAuto")
-
         require(androidComponents.pluginVersion >= AndroidPluginVersion(7, 4, 0)) {
             "AGP version must be at least 7.4 or higher. current version ${androidComponents.pluginVersion}"
         }
 
+        if (isApp) {
+            println("-------- LRouter Current environment --------")
+            println("Gradle Version $gradleVersion")
+            println("${androidComponents.pluginVersion}")
+            println("JDK Version ${System.getProperty("java.version")}")
+            println("LRouter Version $ROUTER_VERSION")
+            println("LRouter Auto $isAuto")
+        }
 
         androidComponents.onVariants { variant ->
+            if (isApp) {
+                val addSourceTaskProvider = project.tasks.register(
+                    "${variant.name}RouterStubClass",
+                    RouterStubClassTask::class.java
+                ) {
+                    it.group = "router"
+                }
+
+                @Suppress("UnstableApiUsage")
+                variant.sources.java!!.addGeneratedSourceDirectory(
+                    addSourceTaskProvider,
+                    RouterStubClassTask::outputFolder
+                )
+            }
+
+
             val taskProvider = project.tasks.register(
                 "${variant.name}LRouterHandleClasses",
                 LRouterClassTask::class.java
-            )
+            ) {
+                it.group = "router"
+            }
 
             variant.artifacts
-                .forScope(ScopedArtifacts.Scope.ALL)
+                .forScope(ScopedArtifacts.Scope.PROJECT)
                 .use(taskProvider)
                 .toTransform(
                     ScopedArtifact.CLASSES,
