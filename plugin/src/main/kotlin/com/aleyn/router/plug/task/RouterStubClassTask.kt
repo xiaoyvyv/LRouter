@@ -18,21 +18,31 @@ abstract class RouterStubClassTask : DefaultTask() {
         outputFile.writeText(
             "package com.router\n" +
                     "\n" +
+                    "import androidx.annotation.Keep\n" +
                     "import com.aleyn.router.inject.IRouterGenerate\n" +
                     "\n" +
+                    "/**\n" +
+                    " * 插桩类，自动生成\n" +
+                    " */\n" +
+                    "@Keep\n" +
                     "class RouterGenerateHolder : IRouterGenerate {\n" +
+                    "\n" +
+                    "    @Keep\n" +
                     "    override fun injectAutowired(target: Any?) {\n" +
                     "        // 插桩占位\n" +
                     "    }\n" +
                     "\n" +
+                    "    @Keep\n" +
                     "    override fun initModuleRouter() {\n" +
                     "        // 插桩占位\n" +
                     "    }\n" +
                     "\n" +
+                    "    @Keep\n" +
                     "    override fun registerIntercept() {\n" +
                     "        // 插桩占位\n" +
                     "    }\n" +
                     "\n" +
+                    "    @Keep\n" +
                     "    override fun registerAllInitializer() {\n" +
                     "        // 插桩占位\n" +
                     "    }\n" +
