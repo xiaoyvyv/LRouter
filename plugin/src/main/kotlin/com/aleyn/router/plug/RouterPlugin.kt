@@ -1,11 +1,13 @@
+@file:Suppress("UnstableApiUsage")
+
 package com.aleyn.router.plug
 
 import com.aleyn.plugin.ROUTER_CORE
 import com.aleyn.plugin.ROUTER_PROCESSOR
 import com.aleyn.plugin.ROUTER_VERSION
-import com.aleyn.router.plug.task.RouterStubClassTask
 import com.aleyn.router.plug.task.GenLRouterDocTask
 import com.aleyn.router.plug.task.LRouterClassTask
+import com.aleyn.router.plug.task.RouterStubClassTask
 import com.android.build.api.AndroidPluginVersion
 import com.android.build.api.artifact.ScopedArtifact
 import com.android.build.api.variant.AndroidComponentsExtension
@@ -40,10 +42,10 @@ class RouterPlugin : Plugin<Project> {
         project.extensions.findByType(KspExtension::class.java)?.apply {
             arg("L_ROUTER_MODULE_NAME", project.name)
         }
-        println("projectName: ${project.name}")
 
         val androidComponents = project.extensions.getByType(AndroidComponentsExtension::class.java)
         val gradleVersion = project.gradle.gradleVersion
+
         require(androidComponents.pluginVersion >= AndroidPluginVersion(7, 4, 0)) {
             "AGP version must be at least 7.4 or higher. current version ${androidComponents.pluginVersion}"
         }
@@ -58,6 +60,7 @@ class RouterPlugin : Plugin<Project> {
         }
 
         androidComponents.onVariants { variant ->
+            // app 模块注入一个任务，自动生成插桩类
             if (isApp) {
                 val addSourceTaskProvider = project.tasks.register(
                     "${variant.name}RouterStubClass",
@@ -66,8 +69,7 @@ class RouterPlugin : Plugin<Project> {
                     it.group = "router"
                 }
 
-                @Suppress("UnstableApiUsage")
-                variant.sources.java!!.addGeneratedSourceDirectory(
+                variant.sources.java?.addGeneratedSourceDirectory(
                     addSourceTaskProvider,
                     RouterStubClassTask::outputFolder
                 )
@@ -79,6 +81,11 @@ class RouterPlugin : Plugin<Project> {
                 LRouterClassTask::class.java
             ) {
                 it.group = "router"
+
+                // app 模块需要修改插桩类，所以每次都要执行，禁用缓存
+                if (isApp) {
+                    it.outputs.upToDateWhen { false }
+                }
             }
 
             variant.artifacts
@@ -91,6 +98,7 @@ class RouterPlugin : Plugin<Project> {
                     LRouterClassTask::output
                 )
         }
+
         project.tasks.register("generateLRouterDoc", GenLRouterDocTask::class.java)
     }
 

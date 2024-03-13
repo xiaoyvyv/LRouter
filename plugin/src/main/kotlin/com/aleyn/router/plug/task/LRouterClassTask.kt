@@ -1,9 +1,10 @@
 package com.aleyn.router.plug.task
 
+import com.aleyn.router.plug.build.HandleModelCache
 import com.aleyn.router.plug.data.HandleModel
 import com.aleyn.router.plug.visitor.FindHandleClass
 import com.aleyn.router.plug.visitor.InsertCodeVisitor
-import org.gradle.api.DefaultTask
+import com.android.build.gradle.internal.tasks.BaseTask
 import org.gradle.api.file.Directory
 import org.gradle.api.file.RegularFile
 import org.gradle.api.file.RegularFileProperty
@@ -32,9 +33,7 @@ import java.util.jar.JarOutputStream
  */
 internal const val ROUTER_INJECT = "com/router/RouterGenerateHolder.class"
 
-val handleModels = arrayListOf<HandleModel>()
-
-abstract class LRouterClassTask : DefaultTask() {
+abstract class LRouterClassTask : BaseTask() {
 
     @get:InputFiles
     abstract val allJars: ListProperty<RegularFile>
@@ -52,6 +51,7 @@ abstract class LRouterClassTask : DefaultTask() {
     fun taskAction() {
         val jarOutput = JarOutputStream(BufferedOutputStream(FileOutputStream(output.get().asFile)))
         var routerStubClass: File? = null
+        val handleModels = arrayListOf<HandleModel>()
 
         allDirectories.get().forEach { directory ->
             val directoryUri = directory.asFile.toURI()
@@ -90,17 +90,22 @@ abstract class LRouterClassTask : DefaultTask() {
             jarFile.close()
         }
 
+        HandleModelCache.saveHandleModel(project, handleModels)
+
         // 修改插桩的类
         // 由于插桩类只在 application 模块下，而 application 模块的 transform 是最后处理的，所以
         // 这里检测到 routerStubClass 时，就相当于已经扫描完了
         routerStubClass?.let {
-            println("修改插桩的类")
+            val allHandleModules = HandleModelCache.readHandleModel(project.rootProject)
+            println("修改插桩的类，allHandleModules size = ${allHandleModules.size}")
+
             jarOutput.putNextEntry(JarEntry(ROUTER_INJECT))
             val writer = ClassWriter(ClassWriter.COMPUTE_FRAMES)
-            val insertVisitor = InsertCodeVisitor(writer, handleModels)
+            val insertVisitor = InsertCodeVisitor(writer, allHandleModules)
             ClassReader(it.inputStream()).accept(insertVisitor, ClassReader.SKIP_DEBUG)
             jarOutput.write(writer.toByteArray())
             jarOutput.closeEntry()
+
             println("修改插桩的类 完成")
         }
 
